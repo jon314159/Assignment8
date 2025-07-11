@@ -5,3 +5,10 @@ __pycache__/
 .coverage
 .pytest_cache
 htmlcov
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
