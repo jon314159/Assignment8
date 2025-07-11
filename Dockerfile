@@ -5,7 +5,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# install OS-level deps, Node.js, and build tools
+# Install OS-level dependencies, Node.js, and build tools
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
@@ -16,26 +16,29 @@ RUN apt-get update && \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# upgrade pip & setuptools
+# Upgrade pip & setuptools
 RUN python -m pip install --upgrade pip setuptools>=70.0.0 wheel
 
-# create non-root user
+# Create non-root user
 RUN groupadd -r appgroup && \
-    useradd -r -g appgroup appuser
+    useradd -r -g appgroup -m -d /home/appuser appuser
 
-# Python dependencies
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Playwright and browsers
-RUN npm install -g playwright && \
-    playwright install --with-deps
+# Install Playwright CLI (as root)
+RUN npm install -g playwright
 
-# app code
+# Copy app code
 COPY . .
 RUN chown -R appuser:appgroup /app
 
+# Switch to appuser
 USER appuser
+
+# Install Playwright browsers *as appuser*
+RUN playwright install --with-deps
 
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
