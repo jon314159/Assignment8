@@ -14,6 +14,8 @@ RUN apt-get update && \
         gcc python3-dev libssl-dev curl gnupg \
         libnss3 libatk-bridge2.0-0 libatk1.0-0 libcups2 libdrm2 libxcomposite1 \
         libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libasound2 \
+        libxss1 libgconf-2-4 libxrandr2 libasound2 libpangocairo-1.0-0 \
+        libatk1.0-0 libcairo-gobject2 libgtk-3-0 libgdk-pixbuf2.0-0 \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
@@ -29,20 +31,26 @@ RUN groupadd -r appgroup && \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Playwright CLI (as root)
-RUN npm install -g playwright
+# Install Playwright CLI and browsers (as root for system-wide installation)
+RUN npm install -g playwright && \
+    playwright install --with-deps
 
-# Copy app code
+# Copy app code and set ownership
 COPY . .
 RUN chown -R appuser:appgroup /app
 
 # Switch to appuser
 USER appuser
 
-# Install Playwright browsers as appuser
-RUN playwright install
+# Set proper working directory permissions
+RUN mkdir -p /home/appuser/.cache && \
+    chmod 755 /home/appuser/.cache
 
+# Health check with proper curl installation check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD python -c "import requests; requests.get('http://localhost:8000/health', timeout=5)" || exit 1
+
+# Expose port
+EXPOSE 8000
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
