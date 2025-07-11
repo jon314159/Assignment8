@@ -39,12 +39,12 @@ RUN npm install -g playwright && \
 COPY . .
 RUN chown -R appuser:appgroup /app
 
+# Set up user directories and permissions before switching users
+RUN mkdir -p /home/appuser/.cache && \
+    chown -R appuser:appgroup /home/appuser/.cache
+
 # Switch to appuser
 USER appuser
-
-# Set proper working directory permissions
-RUN mkdir -p /home/appuser/.cache && \
-    chmod 755 /home/appuser/.cache
 
 # Health check with proper curl installation check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
