@@ -76,8 +76,8 @@ jobs:
         with:
           push: true
           tags: |
-            jonathancapalbo/assignment8:latest
-            jonathancapalbo/assignment8:601_module8-${{ github.sha }}
+            jonathancapalbo1/assignment8:latest
+            jonathancapalbo1/assignment8:601_module8-${{ github.sha }}
           platforms: linux/amd64,linux/arm64
-          cache-from: type=registry,ref=jonathancapalbo/assignment8:cache
+          cache-from: type=registry,ref=jonathancapalbo1/assignment8:cache
           cache-to: type=inline,mode=max
