@@ -1,3 +1,6 @@
+![alt text](image.png)
+![alt text](image-1.png)
+DOCKERHUB_URL: https://hub.docker.com/r/jonathancapalbo1/assignment8
 # 📦 Project Setup
 
 ---

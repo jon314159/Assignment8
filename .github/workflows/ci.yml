@@ -1,0 +1,53 @@
+name: CI - Calculator App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      docker:
+        image: docker:dind
+        options: --privileged
+
+    steps:
+      # Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Set up Python (for pytest if not in Docker)
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Install Playwright
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright dependencies
+        run: |
+          npm install -g playwright
+          playwright install --with-deps
+
+      # Build Docker image
+      - name: Build Docker image
+        run: docker build -t calculator-app .
+
+      # Run unit tests (pytest) inside container
+      - name: Run pytest in Docker
+        run: docker run --rm calculator-app pytest
+
+      # Run Playwright tests outside Docker
+      - name: Run Playwright tests
+        run: |
+          cd tests/playwright
+          npx playwright test
+
