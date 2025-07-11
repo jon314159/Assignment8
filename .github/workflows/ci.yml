@@ -34,9 +34,9 @@ jobs:
           npm install -g playwright
           playwright install --with-deps
 
-      # Log in to Docker Hub
+      # Log in to Docker Hub (use @v3!)
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
