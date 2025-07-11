@@ -1,7 +1,9 @@
 FROM python:3.10-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    HOME=/home/appuser \
+    PATH=$PATH:/usr/local/bin
 
 WORKDIR /app
 
@@ -19,7 +21,7 @@ RUN apt-get update && \
 # Upgrade pip & setuptools
 RUN python -m pip install --upgrade pip setuptools>=70.0.0 wheel
 
-# Create non-root user properly
+# Create a proper non-root user
 RUN groupadd -r appgroup && \
     useradd -m -d /home/appuser -s /bin/bash -g appgroup appuser
 
@@ -37,10 +39,11 @@ RUN chown -R appuser:appgroup /app
 # Switch to appuser
 USER appuser
 
-# Install Playwright browsers *as appuser*
+# Install Playwright browsers as appuser
 RUN playwright install --with-deps
 
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-CMD
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+
