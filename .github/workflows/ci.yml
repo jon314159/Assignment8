@@ -1,4 +1,4 @@
-name: CI - Calculator App
+name: CI/CD - Calculator App
 
 on:
   push:
@@ -7,47 +7,57 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  ci-cd:
     runs-on: ubuntu-latest
-
-    services:
-      docker:
-        image: docker:dind
-        options: --privileged
+    environment: production
 
     steps:
       # Checkout code
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # Set up Python (for pytest if not in Docker)
+      # Set up Python (optional, for linting or other tasks)
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      # Install Playwright
-      - name: Install Node.js
+      # Set up Node.js for Playwright
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Install Playwright dependencies
+      # Install Playwright & dependencies
+      - name: Install Playwright
         run: |
           npm install -g playwright
           playwright install --with-deps
 
+      # Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       # Build Docker image
       - name: Build Docker image
-        run: docker build -t calculator-app .
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/calculator-app:latest .
 
-      # Run unit tests (pytest) inside container
+      # Run pytest inside Docker
       - name: Run pytest in Docker
-        run: docker run --rm calculator-app pytest
+        run: |
+          docker run --rm ${{ secrets.DOCKERHUB_USERNAME }}/calculator-app:latest pytest
 
-      # Run Playwright tests outside Docker
+      # Run Playwright tests (on host machine)
       - name: Run Playwright tests
         run: |
           cd tests/playwright
           npx playwright test
 
+      # Push Docker image to Docker Hub
+      - name: Push Docker image to Docker Hub
+        run: |
+          docker push ${{ secrets.
